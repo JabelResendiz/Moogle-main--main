@@ -1,0 +1,218 @@
+\section{MoogleEngine}
+\begin{block}{MoogelServer}
+  MoogleEngine es el nombre de la biblioteca que en diferentes clases se
+encarga de la implementación de la parte no gr\'afica del proyecto y de la lógica
+de los algoritmos y la matemática detrás de la búsqueda.Todas las clases de
+la misma están implementadas en csharp.Este proceso se desarrolla en dos fases
+imprescindibles,una primera encargada de leer los documentos,trabajar sobre
+sus respectivos vocabularios y encapsular  toda la información posible para
+trabajar con la futura cadena,esto se ejecuta antes de que la app  cargue la
+pagina para facilitar en medida una dinámica búsqueda.Esto es gracias a que
+se llama la clase Principal en el archivo Program.cs de MoogleServer.
+
+\end{block}
+
+\subsection{Estructura de la biblioteca}
+\begin{frame}[fragile]{File.cs}
+  Esta clase como hemos explicado es la encargada de encapsular en un objeto
+  toda la información relativa a cada texto tales como:
+  \begin{itemize}
+      \item Indice del documento
+      \item T\'itulo del documento
+      \item Un diccionario donde a cada palabra del vocabulario se le hace corresponder la
+      cantidad de veces que aparece.
+      \item El cuerpo del texto
+      \item El  mismo texto pero normalizado(definimos normalizar en la próxima clase)
+      \item Un string snippet  que es un fragmento del texto
+      \item Una variable Score que será el peso de cada documento con respecto a la
+      entrada
+      \item Un diccionario con el respectivo peso de cada  palabra con el query
+      
+  \end{itemize}
+
+\end{frame}
+
+\begin{frame}[fragile]{Normalize.cs}
+  \begin{block}
+    Es la clase encargada de a través de varios métodos normalizar las cadenas de
+  texto para su posterior trabajo,digamos tales como sustituir tildes y otros
+  acentos de otros idiomas,eliminar signos no alfanuméricos,
+  suprimir saltos de líneas,espacios en  blancos para tener una
+  alineación dentro de los textos que manipulamos.Adem\'as hay implementada
+  un método para trabajar con los títulos que se van a imprimir en la p\'agina.
+  \end{block}
+  
+  
+\end{frame}
+
+\begin{frame}[fragile]{AplicatedMath.cs}
+  Esta clase realiza  trabajos matemáticos tales como calcular tf*idf, normalizar
+  vectores,y una que calcula similitud.He aquí donde empieza el primer de los
+  principales análisis.
+  El principal algoritmo de búsqueda que efectúo es el c\'alculo de tfidf.En el
+  enfoque Frecuencia de T\'ermino(TF)  las coordenadas del vector documento $d_j$
+  es representado como una  función de conteo de términos con la longitud del
+  documento.
+
+  \[
+    f(x)=
+    \begin{cases}
+        0 &\text{si la palabra no aparece } \\
+        (R)/(l) &\text{en otro caso }
+    \end{cases}
+\]
+  \end{frame}
+    
+  \begin{frame}[fragile]{AplicatedMath.cs}
+    donde:
+\begin{enumerate}
+    \item R es el numero de veces que se repite la palabra en el documento
+    \item l es la longitud del documento
+\end{enumerate}
+
+La idea básica de la frecuencia inversa IDF es calcular en proporción a los
+documentos donde aparece el t\'ermino $t_j$  con respecto al n\'umero total de
+documentos.
+\[ IDF(t_j)= 
+\log_{10}\left(\frac{N}{n_j-0.5}\right)\]
+
+\begin{enumerate}
+  \item N es el n\'umero de documento  de la colección
+  \item $n_j$ es la cantidad de documentos donde aparece el t\'ermino $t_j$.(-0.5 es usado
+  para evitar tener \[log_{10}(1)=0\]);
+\end{enumerate}
+\end{frame}
+\begin{frame}[fragile]{AplicatedMath.cs}
+  
+\begin{block}
+  Luego el peso de la palabra i dentro del documento j será la multiplicación del
+TF  de la palabra dentro del documento y el IDF del valor de la palabra dentro del
+corpus de documentos.
+\end{block}
+
+
+\end{frame}
+\begin{frame}[fragile]{AplicatedMath.cs}
+
+EL método de normalizar vectores es para darle a los vectores una longitud de
+1. A través de la formulas \[
+    \sqrt{\sum_{i=1}^{n} X_i^2}
+    \]
+donde $X_i$ son los valores del vector.
+El método de similitud es para calcular un score para el documento en  función
+del producto de ambos vectores normalizados,y aquellos vectores que den
+mayor valores es porque su similitud es mayor con la cadena inicial.
+
+\[
+s(A,B) = \frac{\sum_{i} (A_i \cdot B_i)}{(\sqrt{\sum_{i} A_i^2}) \cdot (\sqrt{\sum_{i} B_i^2}) + 1}
+\]
+siendo A y B dos vectores siendo $A_i$ y $B_i$ los componentes de ambos vectores.
+
+
+\end{frame}
+
+\begin{frame}[fragile]{QueryWork.cs}
+
+
+  Este método es para trabajar con el query(cadena inicial)
+  \begin{itemize}
+      \item Process Query es el método de crear el vocabulario en función de las palabras
+      que pertenezcan al vocabulario global de los documentos.
+      \item VectorQuery es el método que crea el vector query como un diccionario donde
+      a cada palabra del vocabulario  antes sacado su valor TF-IDF de acuerdo:TF(la
+      frecuencia de la palabra dentro del query)y el IDF(como la cantidad de
+      documentos en el que aparece la palabra),este \'ultimo  ya lo teníamos calculado.
+      Este vector es normalizado seguidamente.
+      \item Operator es un método p\'ublico que se encarga de realizar operaciones de
+      acuerdo a la presencia de operadores que no son mas que signos tales como:
+  \end{itemize}
+  \end{frame}
+    
+  \begin{frame}[fragile]{QueryWork.cs}
+      \begin{enumerate}
+          \item ! Operadores que  advierte de  que ningún documento con la palabra que le sucede
+          debe ser devuelto.A toda palabra con ese operador se le sustituirá dentro del
+          vector query su valor TF-IDF por el valor -1.
+          \item $\wedge$ el operador opuesto al anterior,solo deben ser devueltos documentos que
+          tengan la palabra que le sucede al signo.A toda palabra con ese operador se le
+          sumar\'a 100 a su TF-IDF
+          \item  $\ast$  es operador prioridad que determina que la palabra que le sucede al operador
+          aumenta en relevancia tanta como signos tenga,al TF-IDF se le agregara un
+          valor equivalente a la cantidad de * por 1000.
+          \item $\thicksim$ este es un operador cercanía y a diferencia de  los anteriores no es valor de
+          una palabra sino del documento,o sea que se almacene dentro de un array de
+          dobles donde en la posición i estará el valor correspondiente al incremento final
+          del documento i
+          
+      \end{enumerate}
+    \end{frame}
+    \begin{frame}[fragile]{QueryWork.cs}
+      Para este operador se  busca dentro del texto del documento actual la menor
+      distancia(distancia es la cantidad de palabras que separan dos palabras dadas
+      dentro de un texto)entre las palabras separadas por ~ y  el valor incremento del
+      documento i será el valor de dividir 0.5/ (esa distancia menor).
+      \begin{itemize}
+        
+      \item el  método  Snippet que cuenta dentro de un rango de 100 palabras donde más
+      veces aparezca  más palabras del query  y lo guarda en el campo snippet de la
+      clase file asociado por supuesto a cada documento 
+      \item Un método que ayuda al usuario a localizar las palabras que  quería buscar
+      dentro del snippet entre emogis 
+      \end{itemize}
+    \end{frame}
+
+\begin{frame}[fragile]{Principal.cs}
+\begin{center}
+
+  Es el método encargado de unificar todos esos  métodos y encaminar el trabajo
+  para almacenar en un array los objetos SearchItem organizados por su score
+  \begin{itemize}
+      \item En su  constructor se ejecutan los procesos relacionados con la creación de la
+      matriz de documentos con su TF-IDF calculado y encapsulada esperando a
+      trabajar con el query  de ahí que se implemente en una primera fase antes de
+      que el usuario pueda visualizar la página.Donde el método Calculate TF-IDF
+      realizar\a' el trabajo  de asignarle a cada palabra un TF-IDF
+      \item Una segunda fase que si dependerá del query y que se implementará una vez
+      que el usuario de al botón buscar.Se crea el vocabulario del query;se  calcula la
+      similitud con cada  uno de los vectores de la matriz de documentos pero no sin
+      antes tener en  cuenta los valores relativos a cada operador.
+      
+  \end{itemize}
+\end{center}
+\end{frame}
+\begin{frame}[fragile]{Principal.cs}
+  \begin{center}
+  Luego que  están  escogidos los documentos que pasan esa prueba de
+  operadores se les calcula la similitud con  el vector query y se suma al valor de
+  la similitud de ese documento,el valor incremento realtivo al símbolo de
+  cercanía $\thicksim$  y la cantidad de palabras del vocabulario del query que coinciden
+  con el vocabulario del documento.Se organizan los objetos de acuerdo a ese
+  score total y se guardan en un array como objetos de SearchItem para luego la
+  clase Moogle llame  a la otra SearchResult con ese array de objetos SearchItem
+  y los imprima en la página. 
+\end{center}
+\end{frame}
+
+\begin{frame}[fragile]{Principal.cs}
+  \begin {center} {Suggestion}
+   Un m\'etodo de Sugerencia para query donde las palabras no coinciden todas con palabras del 
+    vocabulario
+    \begin{enumerate}
+        \item m\'etodo de la sugerencia para cadenas donde no hay una coincidencia fuerte dentro de los textos de la base de dato
+        Explicaci\'on:
+    
+    \item  Busca en el vocabulario de palabras del corpus si la palabra esta: en caso de estarlo pues
+    agregar la palabra al texto de la sugerencia. Si no llama al metodo Suggest de la clase AplicatedMath
+    \item  En Suggest se encarga de buscar el rango de palabras cuya longitud oscile entre uno hasta 2 caracteres
+  \end{enumerate}
+\end{center}
+\end{frame}
+\begin{frame}[fragile]{Principal.cs}
+  \begin{enumerate}
+    \item Esta busqueda la hace a traves del metodo Search con algoritmo de Busqueda Binaria
+    \item  LevinshteinDistance es el metodo que mide las palabras dentro de ese rango y devuelve la diferencia de
+    caracteres entre cada palabra del rango y la actual tomada
+    \item  Suggest termina viendo la palabra con menor valor de entre estas y guardando para la sugerencia
+    
+  \end{enumerate}
+\end{frame}
