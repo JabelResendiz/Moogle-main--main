@@ -9,8 +9,8 @@ namespace MoogleEngine{
         
 
         Dictionary<string, double> WordsDocument;// cantidad de doc en los que aparece la palabra
-        HashSet<string> hashglobal; // Facil para buscar palabras
-        List<string>bagOfWords;// iterar sobre cada palabra                               
+        HashSet<string> hashglobal;                     // Contiene todas las palabras que aparecen en todos los documentos (sin repetir)
+        List<string>bagOfWords;                             // [Facil y rapida verificacion de aparicion o no de la palabra]
         List<Files> Document;  // los objetos de documentos 
 
        // constructor de la clase 
@@ -41,6 +41,7 @@ namespace MoogleEngine{
         }
 
 
+
         // metodo para asignarle a crear los objetos SearchItem y guardarlos en un array organizados por su score
          public SearchItem[] Process(string text){
         // Crea el vector correspondiente a la query almacenando el valor del TF-IDF de las palabras que contiene.
@@ -65,7 +66,7 @@ namespace MoogleEngine{
             return (a.Score>=b.Score)?-1:1;
         }
 
-        // ordenar las palabras de bagOfWords por su tamano
+// ordenar las palabras de bagOfWords por su tamano
         int OrderLength(string a, string b){
         if(a.Length < b.Length)
             return -1;
@@ -172,7 +173,7 @@ namespace MoogleEngine{
         }
 
 
-        // metodo de la sugerencia para cadenas donde no hay una coincidencia fuerte
+// metodo de la sugerencia para cadenas donde no hay una coincidencia fuerte
         // dentro de los textos de la base de dato
         // Explicacion:
     /*
