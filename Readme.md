@@ -1,7 +1,7 @@
 
 
-#Moogle!23
-> Proyecto de Programación I.
+#Moogle!
+> I Proyecto de Programación .
 > Facultad de Matemática y Computación - Universidad de La Habana.
 > Cursos 2023
 
